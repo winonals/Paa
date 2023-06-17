@@ -1,0 +1,135 @@
+import pygame
+import random
+
+# Inisialisasi Pygame
+pygame.init()
+
+# Dimensi jendela
+lebar = 750
+tinggi = 500
+
+# Ukuran sel pada peta
+ukuran_sel = 40
+
+# Warna
+warna_latar = (128, 128, 128)
+warna_dinding = (0, 0, 0)
+warna_jalan = (255, 255, 255)
+warna_pencari = (255, 0, 0)
+warna_pengindar = (0, 255, 0)
+warna_teks = (255, 255, 255)
+warna_game_over = (255, 0, 0)
+
+# Membuat peta dengan ukuran 10x10 cell
+peta = [['.' for _ in range(10)] for _ in range(10)]
+
+# Posisi bola pencari
+posisi_pencari = [random.randint(0, 9), random.randint(0, 9)]
+
+# Posisi bola pengindar
+posisi_pengindar = [random.randint(0, 9), random.randint(0, 9)]
+
+# Status permainan
+game_over = False
+
+# Fungsi untuk menggambar peta pada jendela
+def gambar_peta():
+    for i in range(10):
+        for j in range(10):
+            x = j * ukuran_sel
+            y = i * ukuran_sel
+            if peta[i][j] == '#':
+                pygame.draw.rect(jendela, warna_dinding, (x, y, ukuran_sel, ukuran_sel))
+            else:
+                pygame.draw.rect(jendela, warna_jalan, (x, y, ukuran_sel, ukuran_sel))
+
+    pygame.draw.circle(jendela, warna_pencari, (posisi_pencari[1] * ukuran_sel + ukuran_sel // 2, posisi_pencari[0] * ukuran_sel + ukuran_sel // 2), ukuran_sel // 2)
+    pygame.draw.circle(jendela, warna_pengindar, (posisi_pengindar[1] * ukuran_sel + ukuran_sel // 2, posisi_pengindar[0] * ukuran_sel + ukuran_sel // 2), ukuran_sel // 2)
+
+# Fungsi untuk mengacak peta baru
+def acak_peta():
+    for i in range(10):
+        for j in range(10):
+            peta[i][j] = random.choice(['.', '#'])
+
+# Fungsi untuk memeriksa pertemuan droid merah dan droid hijau
+def cek_pertemuan():
+    if posisi_pencari == posisi_pengindar:
+        return True
+    return False
+
+# Fungsi untuk menampilkan game over
+def tampilkan_game_over():
+    font = pygame.font.SysFont(None, 50)
+    teks = font.render("GAME OVER", True, warna_game_over)
+    jendela.blit(teks, (lebar // 2 - teks.get_width() // 2, tinggi // 2 - teks.get_height() // 2))
+
+    font_restart = pygame.font.SysFont(None, 30)
+    teks_restart = font_restart.render("Tekan R untuk restart", True, warna_teks)
+    jendela.blit(teks_restart, (lebar // 2 - teks_restart.get_width() // 2, tinggi // 2 + teks.get_height() // 2 + 20))
+
+# Membuat jendela Pygame
+jendela = pygame.display.set_mode((lebar, tinggi))
+pygame.display.set_caption("PAA Droid Merah & Hijau")
+
+# Membuat tombol untuk mengacak peta
+tombol_acak = pygame.Rect(530, 20, 140, 50)
+font = pygame.font.SysFont(None, 30)
+teks_tombol = font.render("Acak Peta", True, warna_teks)
+
+clock = pygame.time.Clock()
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            if tombol_acak.collidepoint(mouse_pos):
+                acak_peta()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r and game_over:
+                posisi_pencari = [random.randint(0, 9), random.randint(0, 9)]
+                posisi_pengindar = [random.randint(0, 9), random.randint(0, 9)]
+                acak_peta()
+                game_over = False
+
+    if not game_over:
+        gerakan_pencari = random.choice(['atas', 'bawah', 'kiri', 'kanan'])
+        if gerakan_pencari == 'atas' and posisi_pencari[0] > 0 and peta[posisi_pencari[0] - 1][posisi_pencari[1]] != '#':
+            posisi_pencari[0] -= 1
+        elif gerakan_pencari == 'bawah' and posisi_pencari[0] < 9 and peta[posisi_pencari[0] + 1][posisi_pencari[1]] != '#':
+            posisi_pencari[0] += 1
+        elif gerakan_pencari == 'kiri' and posisi_pencari[1] > 0 and peta[posisi_pencari[0]][posisi_pencari[1] - 1] != '#':
+            posisi_pencari[1] -= 1
+        elif gerakan_pencari == 'kanan' and posisi_pencari[1] < 9 and peta[posisi_pencari[0]][posisi_pencari[1] + 1] != '#':
+            posisi_pencari[1] += 1
+
+        gerakan_pengindar = random.choice(['atas', 'bawah', 'kiri', 'kanan'])
+        if gerakan_pengindar == 'atas' and posisi_pengindar[0] > 0 and peta[posisi_pengindar[0] - 1][posisi_pengindar[1]] != '#':
+            posisi_pengindar[0] -= 1
+        elif gerakan_pengindar == 'bawah' and posisi_pengindar[0] < 9 and peta[posisi_pengindar[0] + 1][posisi_pengindar[1]] != '#':
+            posisi_pengindar[0] += 1
+        elif gerakan_pengindar == 'kiri' and posisi_pengindar[1] > 0 and peta[posisi_pengindar[0]][posisi_pengindar[1] - 1] != '#':
+            posisi_pengindar[1] -= 1
+        elif gerakan_pengindar == 'kanan' and posisi_pengindar[1] < 9 and peta[posisi_pengindar[0]][posisi_pengindar[1] + 1] != '#':
+            posisi_pengindar[1] += 1
+
+        if cek_pertemuan():
+            game_over = True
+
+    jendela.fill(warna_latar)
+    gambar_peta()
+
+    # Menggambar tombol
+    pygame.draw.rect(jendela, warna_pengindar, tombol_acak)
+    jendela.blit(teks_tombol, (tombol_acak.x + 10, tombol_acak.y + 10))
+
+    if game_over:
+        tampilkan_game_over()
+
+    pygame.display.flip()
+    clock.tick(3)
+
+pygame.quit()
